@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bot Gerencia — Nueva actividad</title>
+<style>
+  :root {
+    --ink: #1c2321;
+    --ink-soft: #5a6460;
+    --paper: #f6f5f1;
+    --line: #d8d5cc;
+    --accent: #2f5d50;
+    --accent-soft: #e4ede9;
+    --danger: #b3432b;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px 60px;
+  }
+  .card { width: 100%; max-width: 480px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin-bottom: 6px;
+  }
+  h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-soft); font-size: 14px; margin-bottom: 28px; }
+  fieldset { border: none; padding: 0; margin: 0 0 22px; }
+  label.field-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--ink); }
+  select {
+    width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: #fff; font-size: 15px; color: var(--ink); appearance: none;
+  }
+  select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: "▾"; position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%); color: var(--ink-soft); pointer-events: none;
+  }
+  .radio-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .radio-option {
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 10px;
+    text-align: center; cursor: pointer; background: #fff;
+    transition: border-color .15s, background .15s; font-size: 14px; font-weight: 600; color: var(--ink-soft);
+  }
+  .radio-option input { display: none; }
+  .radio-option.checked { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .recorder { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 20px 16px; text-align: center; }
+  .rec-btn {
+    width: 64px; height: 64px; border-radius: 50%; border: none; background: var(--accent);
+    color: #fff; font-size: 24px; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 12px; transition: background .15s;
+  }
+  .rec-btn.recording { background: var(--danger); animation: pulse 1.4s infinite; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(179,67,43,.35); }
+    70% { box-shadow: 0 0 0 14px rgba(179,67,43,0); }
+    100% { box-shadow: 0 0 0 0 rgba(179,67,43,0); }
+  }
+  .rec-status { font-size: 13px; color: var(--ink-soft); min-height: 18px; }
+  audio { width: 100%; margin-top: 12px; display: none; }
+  .submit-btn {
+    width: 100%; padding: 15px; border: none; border-radius: var(--radius); background: var(--ink);
+    color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px;
+  }
+  .submit-btn:disabled { opacity: .45; cursor: not-allowed; }
+  .hint { font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="eyebrow">Bot Gerencia</div>
+  <h1>Nueva actividad</h1>
+  <div class="sub">Elegí a quién asignarla, el tipo, y grabá el detalle por audio.</div>
+
+  <!-- Formulario común: navega directo al webhook, sin fetch ni CORS -->
+  <form id="activityForm" method="POST" enctype="multipart/form-data"
+        action="https://envy-recollect-last.ngrok-free.dev/webhook/crear-actividad">
+
+    <fieldset>
+      <label class="field-label" for="userSelect">Asignar actividad a</label>
+      <div class="select-wrap">
+        <select id="userSelect" name="user_id" required>
+          <option value="" disabled selected>Cargando usuarios…</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <label class="field-label">Tipo de actividad</label>
+      <div class="radio-group" id="tipoGroup">
+        <label class="radio-option" data-value="comercial">
+          <input type="radio" name="tipo" value="comercial" required>
+          Comercial
+        </label>
+        <label class="radio-option" data-value="administrativa">
+          <input type="radio" name="tipo" value="administrativa">
+          Administrativa
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <label class="field-label">Detalle (audio)</label>
+      <div class="recorder">
+        <button type="button" class="rec-btn" id="recBtn">●</button>
+        <div class="rec-status" id="recStatus">Tocá para grabar</div>
+        <audio id="audioPreview" controls></audio>
+      </div>
+      <div class="hint">Si preferís, también podés adjuntar un audio ya grabado.</div>
+      <input type="file" id="audioFile" name="audio" accept="audio/*" required style="margin-top:10px; width:100%;">
+    </fieldset>
+
+    <button type="submit" class="submit-btn" id="submitBtn">Crear actividad</button>
+  </form>
+</div>
+
+<script>
+  // Esta función la llama el <script src="...get-usuarios"> de más abajo,
+  // que devuelve JS ejecutable (no JSON) para no depender de CORS.
+  function poblarUsuarios(lista) {
+    const select = document.getElementById('userSelect');
+    select.innerHTML = '<option value="" disabled selected>Elegí una persona</option>';
+    lista.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.id;
+      opt.textContent = u.name;
+      select.appendChild(opt);
+    });
+  }
+
+  const tipoGroup = document.getElementById('tipoGroup');
+  const recBtn = document.getElementById('recBtn');
+  const recStatus = document.getElementById('recStatus');
+  const audioPreview = document.getElementById('audioPreview');
+  const audioFile = document.getElementById('audioFile');
+
+  let mediaRecorder, recordedChunks = [], isRecording = false;
+
+  tipoGroup.querySelectorAll('.radio-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      tipoGroup.querySelectorAll('.radio-option').forEach(o => o.classList.remove('checked'));
+      opt.classList.add('checked');
+      opt.querySelector('input').checked = true;
+    });
+  });
+
+  recBtn.addEventListener('click', async () => {
+    if (!isRecording) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        recordedChunks = [];
+        mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+          audioPreview.src = URL.createObjectURL(blob);
+          audioPreview.style.display = 'block';
+          const dt = new DataTransfer();
+          dt.items.add(new File([blob], 'grabacion.webm', { type: 'audio/webm' }));
+          audioFile.files = dt.files;
+          recStatus.textContent = 'Audio listo';
+          stream.getTracks().forEach(t => t.stop());
+        };
+        mediaRecorder.start();
+        isRecording = true;
+        recBtn.classList.add('recording');
+        recBtn.textContent = '■';
+        recStatus.textContent = 'Grabando… tocá de nuevo para terminar';
+      } catch (e) {
+        recStatus.textContent = 'No se pudo acceder al micrófono';
+      }
+    } else {
+      mediaRecorder.stop();
+      isRecording = false;
+      recBtn.classList.remove('recording');
+      recBtn.textContent = '●';
+    }
+  });
+
+  audioFile.addEventListener('change', () => {
+    if (audioFile.files[0]) {
+      audioPreview.src = URL.createObjectURL(audioFile.files[0]);
+      audioPreview.style.display = 'block';
+      recStatus.textContent = 'Audio adjuntado';
+    }
+  });
+</script>
+
+<!-- Carga la lista de usuarios como JS ejecutable (no fetch, no CORS) -->
+<script src="https://envy-recollect-last.ngrok-free.dev/webhook/get-usuarios"></script>
+</body>
+</html>
