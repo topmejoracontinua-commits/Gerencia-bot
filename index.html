@@ -91,6 +91,7 @@
           <option value="" disabled selected>Cargando usuarios…</option>
         </select>
       </div>
+      <input type="hidden" id="partnerIdInput" name="partner_id">
     </fieldset>
 
     <fieldset>
@@ -132,7 +133,12 @@
       const opt = document.createElement('option');
       opt.value = u.id;
       opt.textContent = u.name;
+      opt.dataset.partner = u.partner_id;
       select.appendChild(opt);
+    });
+    select.addEventListener('change', () => {
+      const selected = select.options[select.selectedIndex];
+      document.getElementById('partnerIdInput').value = selected.dataset.partner || '';
     });
   }
 
