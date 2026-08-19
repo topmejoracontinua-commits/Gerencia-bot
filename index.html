@@ -82,7 +82,7 @@
 
   <!-- Formulario común: navega directo al webhook, sin fetch ni CORS -->
   <form id="activityForm" method="POST" enctype="multipart/form-data"
-        action="https://envy-recollect-last.ngrok-free.dev/webhook/crear-actividad">
+        action="https://envy-recollect-last.ngrok-free.dev/webhook/crear-actividad?ngrok-skip-browser-warning=true">
 
     <fieldset>
       <label class="field-label" for="userSelect">Asignar actividad a</label>
@@ -201,6 +201,6 @@
 </script>
 
 <!-- Carga la lista de usuarios como JS ejecutable (no fetch, no CORS) -->
-<script src="https://envy-recollect-last.ngrok-free.dev/webhook/get-usuarios"></script>
+<script src="https://envy-recollect-last.ngrok-free.dev/webhook/get-usuarios?ngrok-skip-browser-warning=true"></script>
 </body>
 </html>
