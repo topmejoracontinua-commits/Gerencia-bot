@@ -124,8 +124,59 @@
 </div>
 
 <script>
-  // Esta función la llama el <script src="...get-usuarios"> de más abajo,
-  // que devuelve JS ejecutable (no JSON) para no depender de CORS.
+  // Lista de usuarios hardcodeada directo acá (misma que en el nodo n8n
+  // "Armar JSONP") — evita depender de un pedido cruzado a ngrok, que
+  // Safari bloquea por su protección de cookies entre sitios.
+  const USUARIOS = [
+    { id: 116, name: "Abogado Corrientes", partner_id: 74898 },
+    { id: 96, name: "Abogado Misiones", partner_id: 69076 },
+    { id: 12, name: "Arce Marcelo David", partner_id: 18 },
+    { id: 10, name: "Ariadna Porterrieu", partner_id: 16 },
+    { id: 44, name: "Asesor Digital", partner_id: 59710 },
+    { id: 21, name: "Baez Angel David", partner_id: 3664 },
+    { id: 39, name: "Belingheri Damian Horacio", partner_id: 58758 },
+    { id: 27, name: "Bogado Lucas Martin", partner_id: 55085 },
+    { id: 81, name: "Cristina Vancsik", partner_id: 67526 },
+    { id: 70, name: "Cuentas Nacionales", partner_id: 64191 },
+    { id: 18, name: "Da Silva Rodrigo", partner_id: 3657 },
+    { id: 66, name: "Distribucion", partner_id: 63708 },
+    { id: 15, name: "Espindola Mauricio Javier", partner_id: 3654 },
+    { id: 114, name: "Fabrizio Tagliabue", partner_id: 74842 },
+    { id: 30, name: "Favio Rollet", partner_id: 55088 },
+    { id: 109, name: "Francisco Secilla", partner_id: 72788 },
+    { id: 67, name: "Garcia Daniel Alejandro", partner_id: 63774 },
+    { id: 8, name: "Gaston Kummritz", partner_id: 13 },
+    { id: 89, name: "Gomez Nelson Dardo", partner_id: 68594 },
+    { id: 32, name: "Ignacio Sa Lindstrom", partner_id: 55092 },
+    { id: 84, name: "José Esteche", partner_id: 67888 },
+    { id: 79, name: "Kauffmann Dario", partner_id: 67226 },
+    { id: 11, name: "Koch Roberto German", partner_id: 17 },
+    { id: 29, name: "Lubaczewski Jorge Alberto", partner_id: 43552 },
+    { id: 28, name: "Martin Ayala", partner_id: 55086 },
+    { id: 38, name: "Massio sa", partner_id: 55398 },
+    { id: 78, name: "Matias Corporativo", partner_id: 67147 },
+    { id: 55, name: "Maximo Mateos", partner_id: 61770 },
+    { id: 112, name: "Maya Rodrigo Alejandro", partner_id: 74387 },
+    { id: 40, name: "Mercado Libre", partner_id: 58890 },
+    { id: 37, name: "Raul Quiroz", partner_id: 57965 },
+    { id: 6, name: "Rodriguez Wasiuk Lucas Armando", partner_id: 9 },
+    { id: 115, name: "Ruth Comex", partner_id: 74852 },
+    { id: 16, name: "Sabrina Hirt", partner_id: 3655 },
+    { id: 19, name: "Sanabria Julio Cesar", partner_id: 3658 },
+    { id: 17, name: "Sanchez Alejandra Itati", partner_id: 3656 },
+    { id: 25, name: "Sand Ramon Rolando", partner_id: 55081 },
+    { id: 26, name: "Sand Ramon Rolando P", partner_id: 55084 },
+    { id: 64, name: "Schmidt Gustavo Javier", partner_id: 63318 },
+    { id: 49, name: "Silva Alexis Carlos", partner_id: 60349 },
+    { id: 92, name: "Talavera Lucas Matias", partner_id: 68654 },
+    { id: 35, name: "Trindadez Sebastian", partner_id: 55097 },
+    { id: 98, name: "Ultra Neumaticos Y Servicios", partner_id: 64559 },
+    { id: 34, name: "Vera Matias Daniel", partner_id: 55095 },
+    { id: 31, name: "Viedma Lucia Elizabet", partner_id: 55089 },
+    { id: 85, name: "Zambrana Leonardo Miguel", partner_id: 67964 },
+    { id: 119, name: "cristian", partner_id: 77111 }
+  ];
+
   function poblarUsuarios(lista) {
     const select = document.getElementById('userSelect');
     select.innerHTML = '<option value="" disabled selected>Elegí una persona</option>';
@@ -141,6 +192,7 @@
       document.getElementById('partnerIdInput').value = selected.dataset.partner || '';
     });
   }
+  poblarUsuarios(USUARIOS);
 
   const tipoGroup = document.getElementById('tipoGroup');
   const recBtn = document.getElementById('recBtn');
@@ -200,7 +252,5 @@
   });
 </script>
 
-<!-- Carga la lista de usuarios como JS ejecutable (no fetch, no CORS) -->
-<script src="https://envy-recollect-last.ngrok-free.dev/webhook/get-usuarios?ngrok-skip-browser-warning=true"></script>
 </body>
 </html>
